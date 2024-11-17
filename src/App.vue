@@ -9,7 +9,7 @@ import DeviceMap from './components/DeviceMap.vue';
 
 export default {
   components: {
-    DeviceMap
-  }
+    DeviceMap,
+  },
 };
 </script>

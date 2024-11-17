@@ -1,97 +1,103 @@
 <template>
-    <div>
-      <h1>GPS Device Tracker</h1>
-  
-      <!-- List of Devices with Edit Options -->
-      <div>
-        <h2>Devices</h2>
-        <ul>
-          <li v-for="device in devices" :key="device.id">
-            <span>{{ device.name }} - Status: {{ device.status }} - Position: ({{ device.lat }}, {{ device.lng }})</span>
-            <button @click="editPreferences(device)">Edit Preferences</button>
-          </li>
-        </ul>
-      </div>
-  
-      <!-- Google Maps Display for Device Locations -->
-      <GmapMap
-        :center="{ lat: 37.7749, lng: -122.4194 }"
-        :zoom="10"
-        style="width: 100%; height: 400px"
-      >
-        <GmapMarker
-          v-for="device in devices"
-          :key="device.id"
-          :position="{ lat: device.lat, lng: device.lng }"
-        />
-      </GmapMap>
-  
-      <!-- Preferences Modal for Device Customization -->
-      <div v-if="showPreferencesModal">
-        <h3>Edit Preferences</h3>
-        <label>Sort Order:
-          <input type="text" v-model="preferences.sortOrder" />
-        </label>
-        <label>Hide Device:
-          <input type="checkbox" v-model="preferences.hideDevice" />
-        </label>
-        <button @click="savePreferences">Save Preferences</button>
-        <button @click="closePreferences">Cancel</button>
-      </div>
-    </div>
-  </template>
-  
-  <script>
-  import axios from 'axios';
-  import { GmapMap, GmapMarker } from 'vue2-google-maps';
-  
-  export default {
-    data() {
-      return {
-        devices: [],
-        showPreferencesModal: false,
-        preferences: {},
-        selectedDevice: null,
-      };
+  <div>
+    <h1>GPS Device Tracker</h1>
+
+    <h2 style="text-align: center;">GPS List Table</h2>
+    <!-- Device List Table -->
+    <table border="1">
+      <thead>
+        <tr>
+          <th rowspan="2">S.No</th>
+          <th rowspan="2">Device Name</th>
+          <th rowspan="2">Status</th>
+          <th colspan="5">Current Position</th>
+          <th rowspan="2">Drive Status</th>
+        </tr>
+        <tr>
+          <th>Latitude</th>
+          <th>Longitude</th>
+          <th>Altitude</th>
+          <th>Angle</th>
+          <th>Speed</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(device, index) in devices" :key="device.id">
+          <td>{{ index + 1 }}</td>
+          <td>{{ device.name }}</td>
+          <td>{{ device.active ? 'Active' : 'Inactive' }}</td>
+          <td>{{ device.current_position.lat }}</td>
+          <td>{{ device.current_position.lng }}</td>
+          <td>{{ device.current_position.alt }}</td>
+          <td>{{ device.current_position.ang }}</td>
+          <td>{{ device.current_position.sp }}</td>
+          <td>{{ capitalizeFirstLetter(device.drive_status) }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</template>
+
+<script>
+import axios from "axios";
+
+export default {
+  data() {
+    return {
+      devices: [], // Holds the device data fetched from the server
+    };
+  },
+  methods: {
+    capitalizeFirstLetter(text) {
+      if (!text) return '';
+      return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
     },
-    methods: {
-      async fetchDevices() {
-        try {
-          const response = await axios.get('/api/devices');
-          this.devices = response.data;
-        } catch (error) {
-          console.error("Failed to fetch devices:", error);
-        }
-      },
-      editPreferences(device) {
-        this.selectedDevice = device;
-        this.preferences = { ...device.preferences };
-        this.showPreferencesModal = true;
-      },
-      async savePreferences() {
-        try {
-          await axios.post(`/api/devices/${this.selectedDevice.id}/preferences`, this.preferences);
-          this.showPreferencesModal = false;
-          this.fetchDevices();
-        } catch (error) {
-          console.error("Failed to save preferences:", error);
-        }
-      },
-      closePreferences() {
-        this.showPreferencesModal = false;
+    async fetchDevices() {
+      try {
+        const response = await axios.get("http://localhost:8080/api/devices");
+        this.devices = response.data.map((device) => ({
+          id: device.id,
+          name: device.display_name,
+          active: device.active,
+          drive_status: device.drive_status,
+          current_position: {
+            lat: device.current_position.Lat,
+            lng: device.current_position.Lng,
+            alt: device.current_position.Alt,
+            ang: device.current_position.Angle,
+            sp: device.current_position.Speed,
+          },
+        }));
+      } catch (error) {
+        console.error("Error fetching devices:", error);
       }
     },
-    mounted() {
-      this.fetchDevices();
-    },
-    components: {
-      GmapMap,
-      GmapMarker
-    },
-  };
-  </script>
-  
-  <style scoped>
-  /* Basic styling */
-  </style>
-  
+  },
+  mounted() {
+    this.fetchDevices();
+  },
+};
+</script>
+
+<style scoped>
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+table th,
+table td {
+  padding: 10px;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+table th {
+  background-color: #f4f4f4;
+}
+
+table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+</style>
