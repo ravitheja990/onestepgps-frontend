@@ -63,7 +63,7 @@ export default {
           return;
         }
 
-        const response = await axios.get("http://localhost:8080/api/devices", {
+        const response = await axios.get("http://localhost:8080/devices", {
           headers: {
             "X-Session-Email": sessionEmail,
           },

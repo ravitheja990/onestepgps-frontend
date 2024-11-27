@@ -55,7 +55,7 @@ export default {
           }
 
           // Call Signup API
-          const response = await axios.post("http://localhost:8080/api/signup", {
+          const response = await axios.post("http://localhost:8080/signup", {
             email: this.form.email,
             password: this.form.password,
           });
@@ -66,7 +66,7 @@ export default {
           }
         } else {
           // Login Logic
-          const response = await axios.post("http://localhost:8080/api/login", {
+          const response = await axios.post("http://localhost:8080/login", {
             email: this.form.email,
             password: this.form.password,
           });
