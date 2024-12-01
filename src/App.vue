@@ -4,8 +4,13 @@
       <LoginSignup @auth-success="handleAuthSuccess" />
     </div>
     <div v-else>
-      <DeviceMap />
-      <button @click="logout" style="margin-top: 20px;">Logout</button>
+      <header style="display: flex; justify-content: flex-end; align-items: center; padding: 10px; background-color: #f8f9fa;">
+        <button @click="logout" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Logout</button>
+      </header>
+
+      <main>
+        <DeviceMap />
+      </main>
     </div>
   </div>
 </template>
@@ -46,3 +51,18 @@ export default {
   },
 };
 </script>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+header {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+main {
+  padding: 20px;
+}
+</style>
