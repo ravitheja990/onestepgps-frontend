@@ -71,7 +71,7 @@ export default {
     return {
       devices: [],
       preferences: {
-        sortOrder: "name", 
+        sortOrder: "name",
         hideInactive: false,
         mapZoomLevel: 10,
       },
@@ -82,27 +82,21 @@ export default {
   },
   computed: {
     filteredDevices() {
-      let sortedDevices = [...this.devices];
-      if (this.preferences.sortOrder === "name") {
-        sortedDevices.sort((a, b) => a.name.localeCompare(b.name));
-      } else if (this.preferences.sortOrder === "status") {
-        sortedDevices.sort((a, b) => a.active - b.active);
-      } else if (this.preferences.sortOrder === "latitude") {
-        sortedDevices.sort((a, b) => a.current_position.lat - b.current_position.lat);
-      }
+      let sorted = [...this.devices];
+      const sortKey = this.preferences.sortOrder;
 
-      if (this.preferences.hideInactive) {
-        sortedDevices = sortedDevices.filter((device) => device.active);
-      }
+      sorted.sort((a, b) => {
+        if (sortKey === "name") return a.name.localeCompare(b.name);
+        if (sortKey === "status") return a.active - b.active;
+        if (sortKey === "latitude") return a.current_position.lat - b.current_position.lat;
+      });
 
-      return sortedDevices;
+      return this.preferences.hideInactive ? sorted.filter((d) => d.active) : sorted;
     },
   },
   watch: {
-    "preferences.mapZoomLevel"(newZoom) {
-      if (this.map) {
-        this.map.setZoom(newZoom);
-      }
+    "preferences.mapZoomLevel"(zoom) {
+      if (this.map) this.map.setZoom(zoom);
     },
   },
   methods: {
@@ -111,72 +105,48 @@ export default {
     },
     async fetchDevices() {
       try {
-        const sessionEmail = localStorage.getItem("sessionEmail");
-        if (!sessionEmail) {
-          console.error("Session email is missing.");
-          return;
-        }
+        const email = localStorage.getItem("sessionEmail");
+        if (!email) return console.error("Missing session email.");
 
-        const response = await axios.get("http://localhost:8080/devices", {
-          headers: {
-            "X-Session-Email": sessionEmail,
-          },
+        const { data } = await axios.get("http://localhost:8080/devices", {
+          headers: { "X-Session-Email": email },
         });
 
-        this.devices = response.data.map((device) => ({
-          id: device.id,
-          name: device.display_name,
-          active: device.online,
-          drive_status: device.drive_status,
+        this.devices = data.map((d) => ({
+          id: d.id,
+          name: d.display_name,
+          active: d.online,
+          drive_status: d.drive_status,
           current_position: {
-            lat: device.current_position.Lat,
-            lng: device.current_position.Lng,
-            alt: device.current_position.Alt,
-            ang: device.current_position.Angle,
-            sp: device.current_position.Speed,
+            lat: d.current_position.Lat,
+            lng: d.current_position.Lng,
+            alt: d.current_position.Alt,
+            ang: d.current_position.Angle,
+            sp: d.current_position.Speed,
           },
         }));
-
         this.updateMapMarkers();
-      } catch (error) {
-        console.error("Error fetching devices:", error.response?.data || error.message);
+      } catch (err) {
+        console.error("Error fetching devices:", err);
       }
     },
     async fetchPreferences() {
       try {
-        const sessionEmail = localStorage.getItem("sessionEmail");
-        if (!sessionEmail) {
-          console.error("Session email is missing.");
-          return;
-        }
+        const email = localStorage.getItem("sessionEmail");
+        if (!email) return console.error("Missing session email.");
 
-        const response = await axios.get("http://localhost:8080/preferences/get", {
-          headers: {
-            "X-Session-Email": sessionEmail,
-          },
+        const { data } = await axios.get("http://localhost:8080/preferences/get", {
+          headers: { "X-Session-Email": email },
         });
 
-        console.log("response is :: ", response.data);
-
-        this.preferences = {
-          sortOrder: response.data.sortOrder || "name",
-          hideInactive: response.data.hideInactive || false,
-          mapZoomLevel: response.data.mapZoomLevel || 10,
-        };
-
+        Object.assign(this.preferences, data);
         localStorage.setItem("userPreferences", JSON.stringify(this.preferences));
         this.preferencesLoaded = true;
-
-        if (this.map) {
-          this.map.setZoom(this.preferences.mapZoomLevel);
-        }
-      } catch (error) {
-        console.error("Error fetching preferences:", error.response?.data || error.message);
-        const savedPreferences = localStorage.getItem("userPreferences");
-        if (savedPreferences) {
-          this.preferences = JSON.parse(savedPreferences);
-        }
-        this.preferencesLoaded = true;
+        if (this.map) this.map.setZoom(this.preferences.mapZoomLevel);
+      } catch (err) {
+        console.error("Error fetching preferences:", err);
+        const saved = localStorage.getItem("userPreferences");
+        if (saved) this.preferences = JSON.parse(saved);
       }
     },
     initializeMap() {
@@ -186,61 +156,37 @@ export default {
       });
     },
     updateMapMarkers() {
-      this.devices.forEach((device) => {
-        const position = { lat: device.current_position.lat, lng: device.current_position.lng };
-
-        if (!this.markers[device.id]) {
-          const marker = new google.maps.Marker({
-            position,
-            map: this.map,
-            title: device.name,
-          });
-
-          this.markers[device.id] = marker;
+      this.devices.forEach((d) => {
+        const pos = { lat: d.current_position.lat, lng: d.current_position.lng };
+        if (!this.markers[d.id]) {
+          this.markers[d.id] = new google.maps.Marker({ position: pos, map: this.map, title: d.name });
         } else {
-          this.markers[device.id].setPosition(position);
+          this.markers[d.id].setPosition(pos);
         }
       });
     },
     async savePreferences() {
       try {
-        const sessionEmail = localStorage.getItem("sessionEmail");
-        if (!sessionEmail) {
-          console.error("Session email is missing.");
-          return;
-        }
+        const email = localStorage.getItem("sessionEmail");
+        if (!email) return console.error("Missing session email.");
 
-        const preferencesToSave = {
-          ...this.preferences,
-          mapZoomLevel: Number(this.preferences.mapZoomLevel),
-        };
-
-        await axios.post(
-          "http://localhost:8080/preferences",
-          preferencesToSave,
-          {
-            headers: {
-              "X-Session-Email": sessionEmail,
-            },
-          }
-        );
+        const prefs = { ...this.preferences, mapZoomLevel: +this.preferences.mapZoomLevel };
+        await axios.post("http://localhost:8080/preferences", prefs, {
+          headers: { "X-Session-Email": email },
+        });
 
         localStorage.setItem("userPreferences", JSON.stringify(this.preferences));
         alert("Preferences saved successfully!");
-      } catch (error) {
-        console.error("Error saving preferences:", error.response?.data || error.message);
+      } catch (err) {
+        console.error("Error saving preferences:", err);
       }
     },
   },
   async mounted() {
-    try {
-      await this.fetchPreferences();
-      this.initializeMap();
-      this.fetchDevices();
-      setInterval(this.fetchDevices, 5000);
-    } catch (error) {
-      console.error("Error in mounted lifecycle:", error);
-    }
+    await this.fetchPreferences();
+    this.initializeMap();
+    this.fetchDevices();
+    setInterval(this.fetchDevices, 5000);
   },
 };
 </script>

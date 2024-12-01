@@ -1,22 +1,23 @@
 <!DOCTYPE html>
-<html lang="">
+<html lang="en">
   <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
     <title><%= htmlWebpackPlugin.options.title %></title>
-    <script 
-    async
-    defer 
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDa2EPxZ1_2Oa4unKY9aP6A2Kp6A5guJUo">
-  </script>
+    <script
+      async
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDa2EPxZ1_2Oa4unKY9aP6A2Kp6A5guJUo">
+    </script>
   </head>
   <body>
     <noscript>
-      <strong>We're sorry but <%= htmlWebpackPlugin.options.title %> doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
+      <strong>
+        Sorry, <%= htmlWebpackPlugin.options.title %> requires JavaScript to function. Please enable JavaScript and reload the page.
+      </strong>
     </noscript>
     <div id="app"></div>
-    <!-- built files will be auto injected -->
   </body>
 </html>

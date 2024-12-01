@@ -6,18 +6,15 @@
         Email:
         <input type="email" v-model="form.email" required />
       </label>
-      <br />
       <label>
         Password:
         <input type="password" v-model="form.password" required />
       </label>
-      <br />
       <div v-if="isSignup">
         <label>
           Confirm Password:
           <input type="password" v-model="form.confirmPassword" required />
         </label>
-        <br />
       </div>
       <button type="submit">{{ isSignup ? "Signup" : "Login" }}</button>
     </form>
@@ -33,7 +30,7 @@ import axios from "axios";
 export default {
   data() {
     return {
-      isSignup: false, // Toggles between Signup and Login
+      isSignup: false,
       form: {
         email: "",
         password: "",
@@ -43,48 +40,40 @@ export default {
   },
   methods: {
     toggleMode() {
-      this.isSignup = !this.isSignup; // Switch between Signup and Login
+      this.isSignup = !this.isSignup;
     },
     async handleSubmit() {
+      const { email, password, confirmPassword } = this.form;
+
+      if (this.isSignup && password !== confirmPassword) {
+        alert("Passwords do not match!");
+        return;
+      }
+
       try {
-        if (this.isSignup) {
-          // Signup Logic
-          if (this.form.password !== this.form.confirmPassword) {
-            alert("Passwords do not match!");
-            return;
+        const url = `http://localhost:8080/${this.isSignup ? "signup" : "login"}`;
+        const payload = { email, password };
+        const response = await axios.post(url, payload);
+
+        if (response.status === (this.isSignup ? 201 : 200)) {
+          alert(this.isSignup ? "Signup successful! Please log in." : "Login successful!");
+
+          if (!this.isSignup) {
+            localStorage.setItem("sessionEmail", email);
+            this.$emit("auth-success");
           }
 
-          // Call Signup API
-          const response = await axios.post("http://localhost:8080/signup", {
-            email: this.form.email,
-            password: this.form.password,
-          });
-
-          if (response.status === 201) {
-            alert("Signup successful! Please log in.");
-            this.isSignup = false; // Switch to Login mode
-          }
-        } else {
-          // Login Logic
-          const response = await axios.post("http://localhost:8080/login", {
-            email: this.form.email,
-            password: this.form.password,
-          });
-
-          if (response.status === 200) {
-            alert("Login successful!");
-            localStorage.setItem("sessionEmail", this.form.email); // Save email to localStorage
-            this.$emit("auth-success"); // Notify the parent component
-          }
+          this.resetForm();
+          if (this.isSignup) this.isSignup = false;
         }
-
-        // Reset the form
-        this.form.email = "";
-        this.form.password = "";
-        this.form.confirmPassword = "";
       } catch (error) {
         alert(error.response?.data?.message || "An error occurred");
       }
+    },
+    resetForm() {
+      this.form.email = "";
+      this.form.password = "";
+      this.form.confirmPassword = "";
     },
   },
 };
@@ -93,13 +82,18 @@ export default {
 <style scoped>
 form {
   margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
+
 input {
-  margin: 10px 0;
+  padding: 5px;
 }
+
 button {
   margin-top: 10px;
-  padding: 5px 10px;
+  padding: 10px;
   cursor: pointer;
 }
 </style>

@@ -4,8 +4,8 @@
       <LoginSignup @auth-success="handleAuthSuccess" />
     </div>
     <div v-else>
-      <header style="display: flex; justify-content: flex-end; align-items: center; padding: 10px; background-color: #f8f9fa;">
-        <button @click="logout" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">Logout</button>
+      <header class="app-header">
+        <button @click="logout" class="logout-btn">Logout</button>
       </header>
 
       <main>
@@ -26,25 +26,15 @@ export default {
   },
   data() {
     return {
-      isLoggedIn: false, // Tracks user login status
+      isLoggedIn: !!localStorage.getItem("token"),
     };
-  },
-  created() {
-    // Check if user is already logged in by verifying token
-    const token = localStorage.getItem("token");
-    if (token) {
-      // Optionally verify token with the backend or decode it
-      this.isLoggedIn = true;
-    }
   },
   methods: {
     handleAuthSuccess(token) {
-      // Save the token and update login status
       localStorage.setItem("token", token);
       this.isLoggedIn = true;
     },
     logout() {
-      // Clear token and update login status
       localStorage.removeItem("token");
       this.isLoggedIn = false;
     },
@@ -58,8 +48,19 @@ body {
   font-family: Arial, sans-serif;
 }
 
-header {
+.app-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 10px;
+  background-color: #f8f9fa;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.logout-btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
 }
 
 main {
