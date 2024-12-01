@@ -171,7 +171,7 @@ export default {
         if (!email) return console.error("Missing session email.");
 
         const prefs = { ...this.preferences, mapZoomLevel: +this.preferences.mapZoomLevel };
-        await axios.post("http://localhost:8080/preferences", prefs, {
+        await axios.post("http://localhost:8080/save-preferences", prefs, {
           headers: { "X-Session-Email": email },
         });
 

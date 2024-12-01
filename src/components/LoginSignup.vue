@@ -67,7 +67,11 @@ export default {
           if (this.isSignup) this.isSignup = false;
         }
       } catch (error) {
-        alert(error.response?.data?.message || "An error occurred");
+        if (error.response?.status === 409 && this.isSignup) {
+          alert("User already registered. Please log in.");
+        } else {
+          alert(error.response?.data?.message || "An error occurred");
+        }
       }
     },
     resetForm() {
@@ -92,8 +96,12 @@ input {
 }
 
 button {
-  margin-top: 10px;
+  margin-top: 5px 10px;
   padding: 10px;
   cursor: pointer;
+}
+
+button[type="submit"] {
+  align-self: start;
 }
 </style>
