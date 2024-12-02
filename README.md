@@ -2,9 +2,9 @@
 
 
 ## Project setup
+Create a file named .env and setup google api key in .env file in below format
 ```
-#setup google api key in .env file
-VUE_APP_GOOGLE_MAPS_API_KEY=google_maps_api_key
+VUE_APP_GOOGLE_MAPS_API_KEY=<google_maps_api_key>
 
 ```
 
