@@ -1,6 +1,13 @@
 # onestepgps-frontend
 
+
 ## Project setup
+```
+#setup google api key in .env file
+VUE_APP_GOOGLE_MAPS_API_KEY=google_maps_api_key
+
+```
+
 ```
 npm install
 ```
